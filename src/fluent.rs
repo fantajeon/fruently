@@ -9,6 +9,7 @@ use crate::retry_conf::RetryConf;
 use rmp_serde::encode::Serializer;
 use serde::ser::Serialize;
 use serde_json;
+use std::time::Duration;
 use std::borrow::{Borrow, Cow};
 use std::io::Write;
 use std::net;
@@ -80,15 +81,22 @@ impl<'a, A: ToSocketAddrs> Fluent<'a, A> {
     /// For internal usage.
     pub fn closure_send_as_json<T: Serialize>(
         addr: &A, record: &Record<T>,
-    ) -> Result<(), FluentError> {
-        let mut stream = net::TcpStream::connect(addr)?;
-        let message = serde_json::to_string(&record)?;
-        let result = stream.write(&message.into_bytes());
-        drop(stream);
-
+    ) -> Result<(), FluentError>
+    {
+        let result = net::TcpStream::connect(addr);
         match result {
-            Ok(_) => Ok(()),
-            Err(v) => Err(From::from(v)),
+            Ok(mut stream) => {
+                let message = serde_json::to_string(&record)?;
+                let wr_result = stream.write(&message.into_bytes());
+                drop(stream);
+                if wr_result.is_err() {
+                    return Err(From::from(wr_result.unwrap_err()));
+                }
+                return Ok(());
+            },
+            Err(v) => {
+                return Err(From::from(v));
+            },
         }
     }
 
@@ -97,12 +105,19 @@ impl<'a, A: ToSocketAddrs> Fluent<'a, A> {
     pub fn closure_send_as_msgpack<T: Serialize>(
         addr: &A, record: &MsgPackSendType<T>,
     ) -> Result<(), FluentError> {
-        let mut stream = net::TcpStream::connect(addr)?;
-        let result = record.serialize(&mut Serializer::new(&mut stream));
-
+        let result = net::TcpStream::connect(addr);
         match result {
-            Ok(_) => Ok(()),
-            Err(v) => Err(From::from(v)),
+            Ok(mut stream) => {
+                let wr_result = record.serialize(&mut Serializer::new(&mut stream));
+                drop(stream);
+                if wr_result.is_err() {
+                    return Err(From::from(wr_result.unwrap_err()));
+                }
+                return Ok(());
+            },
+            Err(v) => {
+                return Err(From::from(v));
+            },
         }
     }
 
@@ -111,12 +126,19 @@ impl<'a, A: ToSocketAddrs> Fluent<'a, A> {
     pub fn closure_send_as_forward<T: Serialize>(
         addr: &A, forward: &Forward<T>,
     ) -> Result<(), FluentError> {
-        let mut stream = net::TcpStream::connect(addr)?;
-        let result = forward.serialize(&mut Serializer::new(&mut stream));
-
+        let result = net::TcpStream::connect(addr);
         match result {
-            Ok(_) => Ok(()),
-            Err(v) => Err(From::from(v)),
+            Ok(mut stream) => {
+                let wr_result = forward.serialize(&mut Serializer::new(&mut stream));
+                drop(stream);
+                if wr_result.is_err() {
+                    return Err(From::from(wr_result.unwrap_err()));
+                }
+                return Ok(());
+            },
+            Err(v) => {
+                return Err(From::from(v));
+            },
         }
     }
 }

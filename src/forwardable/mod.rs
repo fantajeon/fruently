@@ -15,7 +15,7 @@ pub type Entry<T> = (i64, T);
 pub trait JsonForwardable {
     fn post<T: Serialize + Debug + Clone>(self, record: T) -> Result<(), FluentError>;
     fn post_with_time<T: Serialize + Debug + Clone>(
-        self, record: T, time: time::Tm,
+        self, record: T, time: time::Tm
     ) -> Result<(), FluentError>;
 }
 

@@ -29,9 +29,9 @@ use std::path::PathBuf;
 /// * `store_file_path`: None
 #[derive(Debug, Clone, PartialEq)]
 pub struct RetryConf {
-    max: u64,
-    multiplier: f64,
-    store_file_path: Option<PathBuf>,
+    pub max: u64,
+    pub multiplier: f64,
+    pub store_file_path: Option<PathBuf>,
 }
 
 impl Default for RetryConf {
