@@ -90,10 +90,10 @@ impl<'a, A: ToSocketAddrs> Fluent<'a, A> {
         match result {
             Ok(mut stream) => {
                 let message = serde_json::to_string(&record)?;
-                let result = stream.write(&message.into_bytes());
+                let wr_result = stream.write(&message.into_bytes());
                 drop(stream);
-                if result.is_err() {
-                    return Err(From::from(result.unwrap_err()));
+                if wr_result.is_err() {
+                    return Err(From::from(wr_result.unwrap_err()));
                 }
                 return Ok(());
             },
@@ -114,10 +114,10 @@ impl<'a, A: ToSocketAddrs> Fluent<'a, A> {
         let result = net::TcpStream::connect_timeout(&sock, Duration::from_secs(1));
         match result {
             Ok(mut stream) => {
-                let result = record.serialize(&mut Serializer::new(&mut stream));
+                let wr_result = record.serialize(&mut Serializer::new(&mut stream));
                 drop(stream);
-                if result.is_err() {
-                    return Err(From::from(result.unwrap_err()));
+                if wr_result.is_err() {
+                    return Err(From::from(wr_result.unwrap_err()));
                 }
                 return Ok(());
             },
@@ -138,10 +138,10 @@ impl<'a, A: ToSocketAddrs> Fluent<'a, A> {
         let result = net::TcpStream::connect(addr);
         match result {
             Ok(mut stream) => {
-                let _result = forward.serialize(&mut Serializer::new(&mut stream));
+                let wr_result = forward.serialize(&mut Serializer::new(&mut stream));
                 drop(stream);
-                if result.is_err() {
-                    return Err(From::from(result.unwrap_err()));
+                if wr_result.is_err() {
+                    return Err(From::from(wr_result.unwrap_err()));
                 }
                 return Ok(());
             },
