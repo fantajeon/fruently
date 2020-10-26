@@ -9,6 +9,7 @@ use crate::retry_conf::RetryConf;
 use rmp_serde::encode::Serializer;
 use serde::ser::Serialize;
 use serde_json;
+use std::time::Duration;
 use std::borrow::{Borrow, Cow};
 use std::io::Write;
 use std::net;
@@ -80,9 +81,11 @@ impl<'a, A: ToSocketAddrs> Fluent<'a, A> {
     /// For internal usage.
     pub fn closure_send_as_json<T: Serialize>(
         addr: &A, record: &Record<T>,
-    ) -> Result<(), FluentError> {
+    ) -> Result<(), FluentError>
+    {
         println!("try closure_send_as_json");
-        let mut stream = net::TcpStream::connect(addr)?;
+        let sock  = (*addr).to_socket_addrs().unwrap().next().unwrap();
+        let mut stream = net::TcpStream::connect_timeout(&sock, Duration::from_millis(500))?;
         let message = serde_json::to_string(&record)?;
         let result = stream.write(&message.into_bytes());
         drop(stream);
