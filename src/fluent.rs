@@ -84,8 +84,10 @@ impl<'a, A: ToSocketAddrs> Fluent<'a, A> {
     ) -> Result<(), FluentError>
     {
         println!("try closure_send_as_json---1");
-        let sock  = (*addr).to_socket_addrs().unwrap().next().unwrap();
+        let sockaddr = addr.to_socket_addrs();
         println!("try closure_send_as_json---1-1");
+        let sock  = sockaddr?.next().unwrap();
+        println!("try closure_send_as_json---1-2");
         let mut stream = net::TcpStream::connect_timeout(&sock, Duration::from_secs(1))?;
         println!("try closure_send_as_json---2");
         let message = serde_json::to_string(&record)?;
