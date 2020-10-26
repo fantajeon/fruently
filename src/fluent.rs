@@ -81,6 +81,7 @@ impl<'a, A: ToSocketAddrs> Fluent<'a, A> {
     pub fn closure_send_as_json<T: Serialize>(
         addr: &A, record: &Record<T>,
     ) -> Result<(), FluentError> {
+        println!("try closure_send_as_json");
         let mut stream = net::TcpStream::connect(addr)?;
         let message = serde_json::to_string(&record)?;
         let result = stream.write(&message.into_bytes());
