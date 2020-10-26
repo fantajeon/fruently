@@ -95,7 +95,6 @@ impl<'a, A: ToSocketAddrs> Fluent<'a, A> {
                 return Ok(());
             },
             Err(v) => {
-                println!("Failed to Connect: {:?}", v);
                 return Err(From::from(v));
             },
         }
@@ -117,7 +116,6 @@ impl<'a, A: ToSocketAddrs> Fluent<'a, A> {
                 return Ok(());
             },
             Err(v) => {
-                println!("Failed to Connect: {:?}", v);
                 return Err(From::from(v));
             },
         }
@@ -139,7 +137,6 @@ impl<'a, A: ToSocketAddrs> Fluent<'a, A> {
                 return Ok(());
             },
             Err(v) => {
-                println!("Failed to Connect: {:?}", v);
                 return Err(From::from(v));
             },
         }
