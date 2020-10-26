@@ -85,8 +85,9 @@ impl<'a, A: ToSocketAddrs> Fluent<'a, A> {
     {
         println!("try closure_send_as_json---");
         let sock  = (*addr).to_socket_addrs().unwrap().next().unwrap();
-        let mut stream = net::TcpStream::connect_timeout(&sock, Duration::from_secs(1)).expect("Could not connect to server");
+        let mut stream = net::TcpStream::connect_timeout(&sock, Duration::from_secs(1))?;
         let message = serde_json::to_string(&record)?;
+        stream.set_write_timeout(Some(Duration::from_secs(1)))?;
         let result = stream.write(&message.into_bytes());
         drop(stream);
 
