@@ -88,18 +88,21 @@ impl<'a, A: ToSocketAddrs> Fluent<'a, A> {
         println!("try closure_send_as_json---1-1");
         let sock  = sockaddr?.next().unwrap();
         println!("try closure_send_as_json---1-2");
-        let mut stream = net::TcpStream::connect_timeout(&sock, Duration::from_secs(1))?;
-        println!("try closure_send_as_json---2");
-        let message = serde_json::to_string(&record)?;
-        stream.set_write_timeout(Some(Duration::from_secs(1)))?;
-        println!("try closure_send_as_json---3");
-        let result = stream.write(&message.into_bytes());
-        drop(stream);
-
-        println!("try closure_send_as_json---{:?}", result);
+        let result = net::TcpStream::connect_timeout(&sock, Duration::from_secs(1));
         match result {
-            Ok(_) => Ok(()),
-            Err(v) => Err(From::from(v)),
+            Ok(mut stream) => {
+                println!("try closure_send_as_json---2");
+                let message = serde_json::to_string(&record)?;
+                stream.set_write_timeout(Some(Duration::from_secs(1)))?;
+                println!("try closure_send_as_json---3");
+                let _result = stream.write(&message.into_bytes());
+                drop(stream);
+                return Ok(());
+            }
+            Err(v) => {
+                println!("Failed to Connect: {:?}", v);
+                return Err(From::from(v));
+            },
         }
     }
 
