@@ -83,15 +83,18 @@ impl<'a, A: ToSocketAddrs> Fluent<'a, A> {
         addr: &A, record: &Record<T>,
     ) -> Result<(), FluentError>
     {
-        let sockaddr = addr.to_socket_addrs();
-        let sock  = sockaddr?.next().unwrap();
-        let result = net::TcpStream::connect_timeout(&sock, Duration::from_secs(1));
+        //let sockaddr = addr.to_socket_addrs();
+        //let sock  = sockaddr?.next().unwrap();
+        //let result = net::TcpStream::connect_timeout(&sock, Duration::from_secs(1));
+        let result = net::TcpStream::connect(addr);
         match result {
             Ok(mut stream) => {
                 let message = serde_json::to_string(&record)?;
-                stream.set_write_timeout(Some(Duration::from_secs(1)))?;
-                let _result = stream.write(&message.into_bytes());
+                let result = stream.write(&message.into_bytes());
                 drop(stream);
+                if result.is_err() {
+                    return Err(From::from(result.unwrap_err()));
+                }
                 return Ok(());
             },
             Err(v) => {
@@ -106,12 +109,22 @@ impl<'a, A: ToSocketAddrs> Fluent<'a, A> {
     pub fn closure_send_as_msgpack<T: Serialize>(
         addr: &A, record: &MsgPackSendType<T>,
     ) -> Result<(), FluentError> {
-        let mut stream = net::TcpStream::connect(addr)?;
-        let result = record.serialize(&mut Serializer::new(&mut stream));
-
+        let sockaddr = addr.to_socket_addrs();
+        let sock  = sockaddr?.next().unwrap();
+        let result = net::TcpStream::connect_timeout(&sock, Duration::from_secs(1));
         match result {
-            Ok(_) => Ok(()),
-            Err(v) => Err(From::from(v)),
+            Ok(mut stream) => {
+                let result = record.serialize(&mut Serializer::new(&mut stream));
+                drop(stream);
+                if result.is_err() {
+                    return Err(From::from(result.unwrap_err()));
+                }
+                return Ok(());
+            },
+            Err(v) => {
+                println!("Failed to Connect: {:?}", v);
+                return Err(From::from(v));
+            },
         }
     }
 
@@ -120,12 +133,22 @@ impl<'a, A: ToSocketAddrs> Fluent<'a, A> {
     pub fn closure_send_as_forward<T: Serialize>(
         addr: &A, forward: &Forward<T>,
     ) -> Result<(), FluentError> {
-        let mut stream = net::TcpStream::connect(addr)?;
-        let result = forward.serialize(&mut Serializer::new(&mut stream));
-
+        //let sockaddr = addr.to_socket_addrs();
+        //let sock  = sockaddr?.next().unwrap();
+        let result = net::TcpStream::connect(addr);
         match result {
-            Ok(_) => Ok(()),
-            Err(v) => Err(From::from(v)),
+            Ok(mut stream) => {
+                let _result = forward.serialize(&mut Serializer::new(&mut stream));
+                drop(stream);
+                if result.is_err() {
+                    return Err(From::from(result.unwrap_err()));
+                }
+                return Ok(());
+            },
+            Err(v) => {
+                println!("Failed to Connect: {:?}", v);
+                return Err(From::from(v));
+            },
         }
     }
 }
