@@ -83,9 +83,6 @@ impl<'a, A: ToSocketAddrs> Fluent<'a, A> {
         addr: &A, record: &Record<T>,
     ) -> Result<(), FluentError>
     {
-        //let sockaddr = addr.to_socket_addrs();
-        //let sock  = sockaddr?.next().unwrap();
-        //let result = net::TcpStream::connect_timeout(&sock, Duration::from_secs(1));
         let result = net::TcpStream::connect(addr);
         match result {
             Ok(mut stream) => {
@@ -109,9 +106,7 @@ impl<'a, A: ToSocketAddrs> Fluent<'a, A> {
     pub fn closure_send_as_msgpack<T: Serialize>(
         addr: &A, record: &MsgPackSendType<T>,
     ) -> Result<(), FluentError> {
-        let sockaddr = addr.to_socket_addrs();
-        let sock  = sockaddr?.next().unwrap();
-        let result = net::TcpStream::connect_timeout(&sock, Duration::from_secs(1));
+        let result = net::TcpStream::connect(addr);
         match result {
             Ok(mut stream) => {
                 let wr_result = record.serialize(&mut Serializer::new(&mut stream));
@@ -133,8 +128,6 @@ impl<'a, A: ToSocketAddrs> Fluent<'a, A> {
     pub fn closure_send_as_forward<T: Serialize>(
         addr: &A, forward: &Forward<T>,
     ) -> Result<(), FluentError> {
-        //let sockaddr = addr.to_socket_addrs();
-        //let sock  = sockaddr?.next().unwrap();
         let result = net::TcpStream::connect(addr);
         match result {
             Ok(mut stream) => {
